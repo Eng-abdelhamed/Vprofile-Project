@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+     vproweb:
+        build:
+          context: ./WebServer
+        image: enabdelhamed/vproweb:latest
+        container_name: vproweb
+        ports:
+          - "80:80"
+        networks:
+          - frontend
+
+     vprodb:
+        build:
+          context: ./Database
+        image: enabdelhamed/vprodb:latest
+        ports:
+          - "3306:3306"
+        container_name: vprodb
+        env_file:
+          - .env
+        volumes:
+          - db_data:/var/lib/mysql
+        networks:
+          - backend
+
+     vprocache01:
+        image: memcached:1.6
+        container_name: vprocache01
+        ports:
+          - "11211:11211"
+        networks:
+          - backend
+      
+
+     vpromq01:
+        image: rabbitmq:4.0
+        container_name: vpromq01
+        ports:
+          - "5672:5672"
+          - "15672:15672"
+        env_file:
+          - .env
+        networks:
+          - backend
+     vproapp:
+        build:
+          context: ./App
+        image: enabdelhamed/vproapp:latest
+        container_name: vproapp
+        ports:
+          - "8080:8080"
+        volumes:
+          - app_data:/usr/local/tomcat/webapps
+        networks:
+          - backend
+          - frontend
+networks:
+   backend:
+   frontend:
+
+volumes:
+  db_data: {}
+  app_data: {}
